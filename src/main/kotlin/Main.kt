@@ -5,9 +5,11 @@ fun main() {
     val enregistrementAudio = EnregistrementAudio("Beethoven - Symphonie No.9", 960, "Classical", "1967-01-01") // Déclaration d'un nouveau audio
     val dvd = DVD("Inception", 8880, "Action", "2010-01-01") /*2h 28m*/ // Déclaration d'un nouveau dvd
     val livre = Livre("1984", "George Orwell", "Gallimard", "1972-01-01") // Déclaration d'un nouveau livre
-    val mediaList = listOf(magazine, journal, enregistrementAudio, dvd, livre)
-    bibliotheque.ajouterMedia(mediaList)
-    bibliotheque.afficherBibliotheque()
+    val livre2 = Livre("La ferme des animaux", "George Orwell", "Gallimard", "1945-01-01") // Déclaration d'un nouveau livre
+    val mediaList = listOf(magazine, journal, enregistrementAudio, dvd)
+    bibliotheque.ajouterMedia(mediaList) // Ajout de toute une liste de médias
+    bibliotheque.ajouterMedia(livre) // Ajout d'un média (Dans ce cas, le livre)
+    bibliotheque.afficherBibliotheque() // Affiche tous les articles présents dans la bibliothèque
     bibliotheque.emprunter(dvd) // Emprunt d'un dvd
     bibliotheque.emprunter(livre) // Emprunt d'un livre
     bibliotheque.consulter(magazine) // Emprunt d'un magazine
@@ -17,6 +19,17 @@ fun main() {
     bibliotheque.retourner(dvd) // Retour du dvd
     bibliotheque.retourner(livre) // Emprunt du livre
     bibliotheque.afficherEmprunts() // Affichage des emprunts. On ne voit plus le DVD ou le livre
+    bibliotheque.emprunter(livre)
+    bibliotheque.consulter(livre2)
+    // Début des failsafes
+    bibliotheque.emprunter(magazine)
+    bibliotheque.consulter(dvd)
+    bibliotheque.retourner(dvd)
+    bibliotheque.emprunter(enregistrementAudio)
+    bibliotheque.consulter(livre)
+    bibliotheque.emprunter(livre2)
+    bibliotheque.arretConsulte(journal)
+    bibliotheque.arretConsulte(journal)
 }
 
 abstract class Media(open var titre: String, open var releaseDate: String){
@@ -51,7 +64,10 @@ class Bibliotheque{
     }
     fun afficherEmprunts() {
         println("Emprunts en cours:")
-        for (i in 1..emprunts.size) { emprunts[i-1].afficherDetails() } // Boucle affichant chaque media emprunté
+        for (i in 1..emprunts.size) {
+            print("- ")
+            emprunts[i-1].afficherDetails()
+        } // Boucle affichant chaque media emprunté
     }
 
     fun emprunter(media: Media) {
@@ -68,7 +84,7 @@ class Bibliotheque{
                 emprunts.add(media)
                 media.emprunter()
             }
-            else -> "Ce media ne peut pas être emprunté !"
+            else -> println("⚠ - Ce media ne peut pas être emprunté !")
         }
     }
 
@@ -86,7 +102,7 @@ class Bibliotheque{
                 emprunts.remove(media)
                 media.retourner()
             }
-            else -> "Ce media n'est pas empruntable, donc il ne peut pas être retourné !"
+            else -> println("⚠ - Ce media n'est pas empruntable, donc il ne peut pas être retourné !")
         }
     }
 
@@ -95,7 +111,7 @@ class Bibliotheque{
             is Livre -> media.consulter()
             is Journal -> media.consulter()
             is Magazine -> media.consulter()
-            else -> "Ce media n'est pas consultable !"
+            else -> println("⚠ - Ce media n'est pas consultable !")
         }
     }
     fun arretConsulte(media: Media){
@@ -103,7 +119,7 @@ class Bibliotheque{
             is Livre -> media.arretConsulte()
             is Journal -> media.arretConsulte()
             is Magazine -> media.arretConsulte()
-            else -> "Ce media n'est pas consultable !"
+            else -> println("⚠ - Ce media n'est pas consultable !")
         }
     }
 }
@@ -115,22 +131,22 @@ class Magazine(var publieur: String, override var releaseDate: String, var numer
     override var enConsulte: Boolean = false
     override fun consulter(): Boolean {
         if (enConsulte){
-            println("Quelqu'un consulte déjà ce magazine, laissez le finir")
+            println("⚠ - Quelqu'un consulte déjà ce magazine, laissez le finir")
         }
         else{
             enConsulte = true
-            println("Le magazine '$titre' numéro '$numero' ('$releaseDate') est consulté sur place")
+            println("✓ - Le magazine '$titre' numéro '$numero' ('$releaseDate') est consulté sur place")
         }
         return enConsulte
     }
 
     override fun arretConsulte(): Boolean {
         if (!enConsulte){
-            println("Commencez par consulter le magazine avant de vouloir arrêter la consulte")
+            println("⚠ - Commencez par consulter le magazine avant de vouloir arrêter la consulte")
         }
         else{
             enConsulte = false
-            println("Vous avez arrêté de consulter le magazine '$titre' numéro '$numero' ('$releaseDate')")
+            println("✓ - Vous avez arrêté de consulter le magazine '$titre' numéro '$numero' ('$releaseDate')")
         }
         return enConsulte
     }
@@ -142,49 +158,49 @@ class Journal(override var titre: String, override var releaseDate: String) : Me
     override var enConsulte: Boolean = false
     override fun consulter(): Boolean {
         if (enConsulte){
-            println("Quelqu'un consulte déjà ce journal, laissez le finir")
+            println("⚠ - Quelqu'un consulte déjà ce journal, laissez le finir")
         }
         else{
             enConsulte = true
-            println("Le journal '$titre' du '$releaseDate' est consulté sur place")
+            println("✓ - Le journal '$titre' du '$releaseDate' est consulté sur place")
         }
         return enConsulte
     }
 
     override fun arretConsulte(): Boolean {
         if (!enConsulte){
-            println("Commencez par consulter le journal avant de vouloir arrêter la consulte")
+            println("⚠ - Commencez par consulter le journal avant de vouloir arrêter la consulte")
         }
         else{
             enConsulte = false
-            println("Vous avez arrêté de consulter le journal '$titre' du '$releaseDate'")
+            println("✓ - Vous avez arrêté de consulter le journal '$titre' du '$releaseDate'")
         }
         return enConsulte
     }
 }
 class EnregistrementAudio(override var titre: String, var length: Int, var genre: String, override var releaseDate: String) : Media(titre, releaseDate), Empruntable{
     override fun afficherDetails(){
-        println("Enregistrement Audio: Titre = '$titre', Duree = '$length' secondes, Genre = '$genre'")
+        println("Enregistrement Audio: Titre = '$titre', Durée = '$length' secondes, Genre = '$genre'")
     }
     override var emprunte: Boolean = false
     override fun emprunter(): Boolean {
         if (emprunte){
-            println("Cet enregistrement audio a déjà été emprunté")
+            println("⚠ - Cet enregistrement audio a déjà été emprunté")
         }
         else{
             emprunte = true
-            println("L'enregistrement audio '$titre' a été emprunté")
+            println("✓ - L'enregistrement audio '$titre' a été emprunté")
         }
         return emprunte
     }
 
     override fun retourner(): Boolean {
         if (!emprunte){
-            println("Vous ne pouvez pas retourner un enregistrement audio qui n'a pas été emprunté")
+            println("⚠ - Vous ne pouvez pas retourner un enregistrement audio qui n'a pas été emprunté")
         }
         else{
             emprunte = false
-            println("L'enregistrement audio '$titre' a été retourné")
+            println("✓ - L'enregistrement audio '$titre' a été retourné")
         }
         return emprunte
     }
@@ -196,22 +212,22 @@ class DVD(override var titre: String, var length: Int, var genre: String, overri
     override var emprunte: Boolean = false
     override fun emprunter(): Boolean {
         if (emprunte){
-            println("Ce DVD a déjà été emprunté")
+            println("⚠ - Ce DVD a déjà été emprunté")
         }
         else{
             emprunte = true
-            println("Le DVD '$titre' a été emprunté")
+            println("✓ - Le DVD '$titre' a été emprunté")
         }
         return emprunte
     }
 
     override fun retourner(): Boolean {
         if (!emprunte){
-            println("Vous ne pouvez pas retourner un DVD qui n'a pas été emprunté")
+            println("⚠ - Vous ne pouvez pas retourner un DVD qui n'a pas été emprunté")
         }
         else{
             emprunte = false
-            println("Le DVD '$titre' a été retourné")
+            println("✓ - Le DVD '$titre' a été retourné")
         }
         return emprunte
     }
@@ -225,46 +241,43 @@ class Livre(override var titre: String, var auteur: String, var editeur: String,
     override var emprunte: Boolean = false
 
     override fun emprunter(): Boolean {
-        if (emprunte){
-            println("Ce livre a déjà été emprunté")
-        }
+        if (emprunte) println("⚠ - Ce livre a déjà été emprunté")
+        if (enConsulte) println("⚠ - Quelqu'un est en train de consulter ce livre!")
         else{
             emprunte = true
-            println("Le livre '$titre' de '$auteur' a été emprunté")
+            enConsulte = false
+            println("✓ - Le livre '$titre' de '$auteur' a été emprunté")
         }
         return emprunte
     }
 
     override fun retourner(): Boolean {
-        if (!emprunte){
-            println("Vous ne pouvez pas retourner un livre qui n'a pas été emprunté")
-        }
+        if (!emprunte) ("⚠ - Vous ne pouvez pas retourner un livre qui n'a pas été emprunté")
         else{
             emprunte = false
-            println("Le livre '$titre' de '$auteur' a été retourné")
+            println("✓ - Le livre '$titre' de '$auteur' a été retourné")
         }
         return emprunte
     }
 
     override var enConsulte: Boolean = false
     override fun consulter(): Boolean {
-        if (enConsulte){
-            println("Quelqu'un consulte déjà ce livre, laissez le finir")
-        }
+        if (enConsulte) println("⚠ - Quelqu'un consulte déjà ce livre, laissez le finir")
+        if (emprunte) println("⚠ - Quelqu'un a emprunté ce livre. Il ne peut donc pas être consulté en ce moment")
         else{
             enConsulte = true
-            println("Le livre '$titre' de '$auteur' est consulté sur place")
+            println("✓ - Le livre '$titre' de '$auteur' est consulté sur place")
         }
         return enConsulte
     }
 
     override fun arretConsulte(): Boolean {
         if (!enConsulte){
-            println("Commencez par consulter le livre avant de vouloir arrêter la consulte")
+            println("⚠ - Commencez par consulter le livre avant de vouloir arrêter la consulte")
         }
         else{
             enConsulte = false
-            println("Vous avez arrêté de consulter le livre '$titre' de '$auteur'")
+            println("✓ - Vous avez arrêté de consulter le livre '$titre' de '$auteur'")
         }
         return enConsulte
     }
